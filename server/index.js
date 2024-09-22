@@ -5,9 +5,10 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const user = require('./models/user')
+const cookieParser = require('cookie-parser')
 app.use(express.json())
 
-
+app.use(cookieParser())
 app.use(cors({
     origin: 'http://localhost:5173',
     credentials:true
@@ -19,17 +20,24 @@ app.get('/',(req,res)=> {
     res.json('test');
 })
 app.get('/profile',(req,res)=> {
-    const {token} = req.cookies;
+    const {token} = req.cookies?.token;
+   if(token)
+   {
     jwt.verify(token,"chat",{}, (err,data)=> 
-    {
-        if(err)
         {
-            console.log(err)
-            throw err;
-        }
-        const {id,userName} = data
-        res.json(data);
-    })
+            if(err)
+            {
+                console.log(err)
+                throw err;
+            }
+            const {id,userName} = data
+            res.json(data);
+        })
+   }
+   else
+   {
+    res.status(420).json('no token')
+   }
 })
 app.post('/register',async(req,res)=> {
     const {userName,password} = req.body;
