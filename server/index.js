@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express();
 const cors = require('cors');
+const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
@@ -15,7 +16,7 @@ app.use(cors({
 }))
 
 mongoose.connect('mongodb://localhost:27017/Chat');
-
+const salt = bcrypt.genSaltSync(10);
 app.get('/',(req,res)=> {
     res.json('test');
 })
@@ -39,10 +40,17 @@ app.get('/profile',(req,res)=> {
     res.status(420).json('no token')
    }
 })
+
+app.post('/login',async(req,res)=> {
+    const {userName,password} = req.body
+    const isUser = await user.findOne({userName})
+})
+
 app.post('/register',async(req,res)=> {
     const {userName,password} = req.body;
     try
     {
+        const hashedPassword = bcrypt.hashSync(password,salt)
         const createdUser = await user.create({userName,password});
         jwt.sign({userId:createdUser._id},"chat",{},(err,token)=> {
             if(err) 
@@ -50,7 +58,7 @@ app.post('/register',async(req,res)=> {
                 console.log(err);
                 throw err;
             }
-            res.cookie('token',token).status(201).json({
+            res.cookie('token',token,{sameSite:'none',secure:true}).status(201).json({
                 _id:createdUser._id,
                 userName:createdUser.userName
             })

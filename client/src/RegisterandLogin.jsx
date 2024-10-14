@@ -4,13 +4,15 @@ import { UserContext } from './UserContext.jsx'
 const Register = () => {
   const [userName,SetUsername] = useState('')
   const [password,SetPassword] = useState('')
+  const [isLoginOrRegister,setIsloginOrRegister] = useState('register');
   const{SetUserName:setLoggedInUserName,SetId}=useContext(UserContext)
   const handleSubmit = async(e)=>
   {
+    const url = isLoginOrRegister === 'register' ? 'register' : 'login'
     e.preventDefault();
     try
     {
-    const res =  await axios.post('/register',{userName,password})
+    const res =  await axios.post(url,{userName,password})
     console.log(res);
     setLoggedInUserName(res.data.userName);
     SetId(res.data._id)
@@ -41,8 +43,33 @@ const Register = () => {
         <button
         className='bg-blue-500 text-white block w-full rounded-sm'
         >
-          Register
+         {isLoginOrRegister === 'register' ? 'Register' : 'Login'}
         </button>
+        <div className='text-center mt-2'>
+          {
+            isLoginOrRegister === 'register'  && (
+              <div>
+                 Already a member? <button onClick={()=> setIsloginOrRegister('login')}>
+            Login here
+            </button>
+            </div>
+            )
+
+          }
+         {
+          isLoginOrRegister === 'login' && (
+            <div>
+             Don't have an account? 
+              <button
+              onClick={()=> setIsloginOrRegister('register')}
+              >
+                Register here
+              </button>
+              </div>
+          )
+         }
+          
+          </div>
       </form>
     </div>
   )
