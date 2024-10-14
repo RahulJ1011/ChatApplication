@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import Avatar from './Avatar';
 
 const Chat = () => {
     const [ws,SetWs] = useState(null);
@@ -38,12 +39,13 @@ const Chat = () => {
         Chat
         </div>
         {Object.keys(onlinePeople).map(person => (
-            <div className='border-b border-gray-100 py-2'>
-                <div className='border-b border-gray-100 py-2'>
-                    <div className='w-4 h-4 bg-red-200'></div>
-                    </div>
-
-                {onlinePeople[person]} 
+            <div className='border-b border-gray-100 py-2 flex items-center gap-2'>
+                
+                   
+                    
+                    <Avatar userName={onlinePeople[userId]} userId={userId} />
+                    <span> {onlinePeople[person]} </span>
+               
                 </div>
         ))}
     </div>
