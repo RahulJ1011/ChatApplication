@@ -7,6 +7,7 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const user = require('./models/user')
 const cookieParser = require('cookie-parser')
+const ws = require('ws')
 app.use(express.json())
 
 app.use(cookieParser())
@@ -44,6 +45,21 @@ app.get('/profile',(req,res)=> {
 app.post('/login',async(req,res)=> {
     const {userName,password} = req.body
     const isUser = await user.findOne({userName})
+    if(isUser)
+    {
+        const isPass = bcrypt.compareSync(password,isUser.password);
+        if(isPass)
+        {
+            jwt.sign({userId:isUser._id,userName},"chat",{},(err,data)=> {
+                if(err)
+                    throw err;
+                res.cookie('token',data,{sameSite:'none',secure:true}).json({
+                    id:isUser._id,
+
+                })
+            })
+        }
+    }
 })
 
 app.post('/register',async(req,res)=> {
@@ -51,8 +67,9 @@ app.post('/register',async(req,res)=> {
     try
     {
         const hashedPassword = bcrypt.hashSync(password,salt)
-        const createdUser = await user.create({userName,password});
-        jwt.sign({userId:createdUser._id},"chat",{},(err,token)=> {
+        const createdUser = await user.create({userName,password:hashedPassword});
+
+        jwt.sign({userId:createdUser._id,userName},"chat",{},(err,token)=> {
             if(err) 
             {
                 console.log(err);
@@ -72,4 +89,28 @@ app.post('/register',async(req,res)=> {
 
 })
 
-app.listen(4000,()=> console.log('server is running'))
+const server = app.listen(4000,()=> console.log('server is running'))
+
+const wss = new ws.WebSocketServer({server})
+wss.on('connection',(connection,req)=> {
+    console.log('connected');
+    connection.send('hello');
+    const cookies = req.headers.cookie
+    if(cookies)
+    {
+       const tokenString =  cookies.split(';').find(str=> str.startsWith('token = '));
+       console.log(tokenString)
+       if(tokenString)
+       {
+        const token = tokenString.split('=')[1];
+        if(token)
+        {
+            jwt.verify(token,"chat",{},(err,data)=> {
+                if(err)
+                    throw err;
+                console.log(data);
+            })
+        }
+       }
+    }
+})
