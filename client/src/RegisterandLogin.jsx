@@ -15,7 +15,7 @@ const Register = () => {
     const res =  await axios.post(url,{userName,password})
     console.log(res);
     setLoggedInUserName(res.data.userName);
-    SetId(res.data._id)
+    SetId(res.data.id)
     }
     catch(err)
     {

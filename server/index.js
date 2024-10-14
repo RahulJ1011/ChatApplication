@@ -108,9 +108,20 @@ wss.on('connection',(connection,req)=> {
             jwt.verify(token,"chat",{},(err,data)=> {
                 if(err)
                     throw err;
-                console.log(data);
-            })
+                const {userId,userName} = data;
+                connection.userId = userId;
+                connection.userName = userName;
+             })
         }
        }
     }
+    // showing who is online
+    [...wss.clients].forEach(client =>{
+        client.send(JSON.stringify(
+            {
+                online:[...wss.clients].map(c => ({userId:c.userId,userName:c.userName}))
+            }
+            
+        ))
+    })
 })
